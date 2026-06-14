@@ -120,7 +120,8 @@ export const usePaletteStore = create<PaletteState>((set, get) => ({
 
   reset: () => {
     persist(DEFAULT_COLORS);
-    set({ colors: DEFAULT_COLORS });
+    persistRecentColors([]);
+    set({ colors: DEFAULT_COLORS, recentColors: [] });
   },
 
   randomize: () => {

@@ -39,9 +39,6 @@ const PaletteGrid: React.FC = () => {
               <Clock size={12} className="inline -mt-0.5 mr-1" />
               最近使用
             </span>
-            <span className="text-[11px] text-stone-400 font-mono">
-              作用于：<span className="text-brand-600 font-semibold">{activeColorRole}</span>
-            </span>
           </div>
           <div className="grid grid-cols-8 gap-1.5">
             {recentColors.map((c) => {
@@ -68,6 +65,9 @@ const PaletteGrid: React.FC = () => {
           <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
             <Palette size={12} className="inline -mt-0.5 mr-1" />
             快速选色
+          </span>
+          <span className="text-[11px] text-stone-400 font-mono">
+            作用于：<span className="text-brand-600 font-semibold">{activeColorRole}</span>
           </span>
         </div>
         <div className="grid grid-cols-8 md:grid-cols-12 gap-1.5">
