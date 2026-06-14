@@ -1,5 +1,5 @@
 import React from 'react';
-import { Palette } from 'lucide-react';
+import { Palette, Clock } from 'lucide-react';
 import { usePaletteStore } from '@/store/usePaletteStore';
 import { normalizeHex } from '@/utils/colorUtils';
 
@@ -20,7 +20,7 @@ const HARMONY_PRESETS: Array<{ name: string; p: string; s: string; b: string; t:
 ];
 
 const PaletteGrid: React.FC = () => {
-  const { colors, activeColorRole, setColor } = usePaletteStore();
+  const { colors, activeColorRole, setColor, recentColors } = usePaletteStore();
 
   const currentHex = colors[activeColorRole];
   const applyPalette = (preset: typeof HARMONY_PRESETS[number]) => {
@@ -32,14 +32,42 @@ const PaletteGrid: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {recentColors.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              <Clock size={12} className="inline -mt-0.5 mr-1" />
+              最近使用
+            </span>
+            <span className="text-[11px] text-stone-400 font-mono">
+              作用于：<span className="text-brand-600 font-semibold">{activeColorRole}</span>
+            </span>
+          </div>
+          <div className="grid grid-cols-8 gap-1.5">
+            {recentColors.map((c) => {
+              const isActive = normalizeHex(currentHex).toUpperCase() === c.toUpperCase();
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(activeColorRole, c)}
+                  className={`aspect-square rounded-lg transition-all duration-150 hover:scale-110 hover:shadow-md relative ${
+                    isActive ? 'ring-2 ring-brand-500 ring-offset-2 scale-105' : ''
+                  }`}
+                  style={{ backgroundColor: c }}
+                  title={c}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
             <Palette size={12} className="inline -mt-0.5 mr-1" />
             快速选色
-          </span>
-          <span className="text-[11px] text-stone-400 font-mono">
-            作用于：<span className="text-brand-600 font-semibold">{activeColorRole}</span>
           </span>
         </div>
         <div className="grid grid-cols-8 md:grid-cols-12 gap-1.5">

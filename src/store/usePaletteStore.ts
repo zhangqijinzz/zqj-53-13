@@ -21,6 +21,8 @@ const DEFAULT_COLORS: Record<ColorRole, string> = {
 };
 
 const STORAGE_KEY = 'chromacheck-palette-v1';
+const RECENT_COLORS_KEY = 'chromacheck-recent-colors-v1';
+const MAX_RECENT_COLORS = 8;
 
 interface StoredPalette {
   colors: Record<ColorRole, string>;
@@ -41,16 +43,40 @@ const loadFromStorage = (): Record<ColorRole, string> => {
 const persist = (colors: Record<ColorRole, string>) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ colors }));
-  } catch {}
+  } catch {
+    void 0;
+  }
+};
+
+const loadRecentColors = (): string[] => {
+  try {
+    const raw = localStorage.getItem(RECENT_COLORS_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) return [];
+    return data.filter((c): c is string => typeof c === 'string' && isValidHex(c));
+  } catch {
+    return [];
+  }
+};
+
+const persistRecentColors = (recentColors: string[]) => {
+  try {
+    localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recentColors));
+  } catch {
+    void 0;
+  }
 };
 
 interface PaletteState {
   colors: Record<ColorRole, string>;
   activeColorRole: ColorRole;
   currentVision: VisionType;
+  recentColors: string[];
   setColor: (role: ColorRole, hex: string) => void;
   setActiveRole: (role: ColorRole) => void;
   setVision: (v: VisionType) => void;
+  addRecentColor: (hex: string) => void;
   reset: () => void;
   randomize: () => void;
 }
@@ -67,11 +93,24 @@ export const usePaletteStore = create<PaletteState>((set, get) => ({
   colors: loadFromStorage(),
   activeColorRole: 'primary',
   currentVision: 'normal',
+  recentColors: loadRecentColors(),
+
+  addRecentColor: (hex) => {
+    if (!isValidHex(hex)) return;
+    const normalized = normalizeHex(hex);
+    const current = get().recentColors;
+    const filtered = current.filter((c) => normalizeHex(c) !== normalized);
+    const next = [normalized, ...filtered].slice(0, MAX_RECENT_COLORS);
+    persistRecentColors(next);
+    set({ recentColors: next });
+  },
 
   setColor: (role, hex) => {
     if (!isValidHex(hex)) return;
-    const next = { ...get().colors, [role]: normalizeHex(hex) };
+    const normalized = normalizeHex(hex);
+    const next = { ...get().colors, [role]: normalized };
     persist(next);
+    get().addRecentColor(normalized);
     set({ colors: next });
   },
 
@@ -88,6 +127,9 @@ export const usePaletteStore = create<PaletteState>((set, get) => ({
     const pair = PRESET_PAIRS[Math.floor(Math.random() * PRESET_PAIRS.length)];
     const next = { ...get().colors, ...pair } as Record<ColorRole, string>;
     persist(next);
+    Object.values(pair).forEach((hex) => {
+      if (hex) get().addRecentColor(hex);
+    });
     set({ colors: next });
   },
 }));
